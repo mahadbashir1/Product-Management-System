@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - Product Management System</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Product Management System</h1>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="add.html" class="nav-link active">Add Product</a>
+                <a href="view.html" class="nav-link">View Products</a>
+                <a href="manage.html" class="nav-link">Manage Products</a>
+            </nav>
+        </header>
+
+        <main class="card" style="max-width: 600px; margin: 0 auto;">
+            <h2 style="margin-bottom: 1.5rem;">Add New Product</h2>
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label for="name">Product Name</label>
+                    <input type="text" id="name" name="name" required placeholder="e.g. Wireless Mouse">
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text" id="category" name="category" required placeholder="e.g. Electronics">
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="price">Price ($)</label>
+                        <input type="number" id="price" name="price" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" min="0" required placeholder="0">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Add Product</button>
+            </form>
+            <div id="statusMessage" class="status-msg"></div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Get form data
+            const productData = {
+                name: document.getElementById('name').value,
+                category: document.getElementById('category').value,
+                price: parseFloat(document.getElementById('price').value),
+                quantity: parseInt(document.getElementById('quantity').value, 10)
+            };
+            
+            submitBtn.textContent = 'Adding...';
+            submitBtn.disabled = true;
+            statusMessage.style.display = 'none';
+            statusMessage.className = 'status-msg';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/create.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    statusMessage.textContent = 'Product successfully added!';
+                    statusMessage.classList.add('status-success');
+                    document.getElementById('addProductForm').reset();
+                } else {
+                    statusMessage.textContent = result.message || 'Error adding product.';
+                    statusMessage.classList.add('status-error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                statusMessage.textContent = 'Network error. Could not connect to the server.';
+                statusMessage.classList.add('status-error');
+            } finally {
+                submitBtn.textContent = 'Add Product';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

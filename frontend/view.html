@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Products - Product Management System</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Product Management System</h1>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="add.html" class="nav-link">Add Product</a>
+                <a href="view.html" class="nav-link active">View Products</a>
+                <a href="manage.html" class="nav-link">Manage Products</a>
+            </nav>
+        </header>
+
+        <main class="card">
+            <h2 style="margin-bottom: 1.5rem;">Inventory</h2>
+            <div id="statusMessage" class="status-msg"></div>
+            
+            <div style="overflow-x: auto;">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsBody">
+                        <tr>
+                            <td colspan="5" class="empty-state">Loading products...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadProducts);
+
+        async function loadProducts() {
+            const tableBody = document.getElementById('productsBody');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/read.php`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const products = result.data;
+                    tableBody.innerHTML = '';
+                    
+                    if (products.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No products found. Start by adding some!</td></tr>';
+                        return;
+                    }
+                    
+                    products.forEach(product => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>#${product.id}</td>
+                            <td style="font-weight: 600;">${product.name}</td>
+                            <td>${product.category}</td>
+                            <td>$${parseFloat(product.price).toFixed(2)}</td>
+                            <td>${product.quantity}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">Failed to load products.</td></tr>';
+                    statusMessage.textContent = result.message || 'Error loading products.';
+                    statusMessage.classList.add('status-error');
+                    statusMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">Network error. Please try again.</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>

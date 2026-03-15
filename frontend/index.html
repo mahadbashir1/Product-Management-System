@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management System - Home</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Product Management System</h1>
+            <p style="color: var(--text-muted);">Manage your entire product inventory efficiently with our seamless platform.</p>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="add.html" class="nav-link">Add Product</a>
+                <a href="view.html" class="nav-link">View Products</a>
+                <a href="manage.html" class="nav-link">Manage Products</a>
+            </nav>
+        </header>
+        
+        <main class="card" style="text-align: center; padding: 4rem 2rem;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 2rem; filter: drop-shadow(0 0 8px rgba(88, 166, 255, 0.5));">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">Welcome to your Dashboard</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto; font-size: 1.1rem; margin-bottom: 2rem;">
+                Select an action from the menu above to start adding new products, viewing the existing inventory, or modifying your database fully.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="add.html" class="btn btn-primary" style="width: auto;">Start Adding Products</a>
+                <a href="view.html" class="btn btn-secondary btn" style="width: auto;">View Inventory</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

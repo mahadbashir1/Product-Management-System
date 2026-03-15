@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Products - Product Management System</title>
+    <link rel="stylesheet" href="index.css">
+    <style>
+        .actions { white-space: nowrap; text-align: right; }
+        .actions .btn { margin-left: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Product Management System</h1>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="add.html" class="nav-link">Add Product</a>
+                <a href="view.html" class="nav-link">View Products</a>
+                <a href="manage.html" class="nav-link active">Manage Products</a>
+            </nav>
+        </header>
+
+        <main class="card">
+            <h2 style="margin-bottom: 1.5rem;">Manage Inventory</h2>
+            <div id="statusMessage" class="status-msg"></div>
+            
+            <div style="overflow-x: auto;">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsBody">
+                        <tr>
+                            <td colspan="6" class="empty-state">Loading products...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal" id="editModal">
+            <div class="modal-header">
+                <h2>Edit Product</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editProductForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label for="editName">Product Name</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCategory">Category</label>
+                    <input type="text" id="editCategory" required>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="editPrice">Price ($)</label>
+                        <input type="number" id="editPrice" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="editQuantity">Quantity</label>
+                        <input type="number" id="editQuantity" min="0" required>
+                    </div>
+                </div>
+                <div id="editStatusMessage" class="status-msg" style="margin-top: 10px; margin-bottom: 10px;"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveBtn" style="width: auto;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadProducts);
+
+        const statusMessage = document.getElementById('statusMessage');
+        const editModalOverlay = document.getElementById('editModalOverlay');
+        const editStatusMessage = document.getElementById('editStatusMessage');
+
+        // Close modal when clicking outside
+        editModalOverlay.addEventListener('click', (e) => {
+            if (e.target === editModalOverlay) closeEditModal();
+        });
+
+        async function loadProducts() {
+            const tableBody = document.getElementById('productsBody');
+            statusMessage.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/read.php`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const products = result.data;
+                    tableBody.innerHTML = '';
+                    
+                    if (products.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No products found. Start by adding some!</td></tr>';
+                        return;
+                    }
+                    
+                    products.forEach(product => {
+                        const tr = document.createElement('tr');
+                        // Store the product object directly on the element for easy access during edit
+                        tr.dataset.product = JSON.stringify(product);
+                        tr.innerHTML = `
+                            <td>#${product.id}</td>
+                            <td style="font-weight: 600;">${product.name}</td>
+                            <td>${product.category}</td>
+                            <td>$${parseFloat(product.price).toFixed(2)}</td>
+                            <td>${product.quantity}</td>
+                            <td class="actions">
+                                <button class="btn btn-sm btn-secondary" onclick="openEditModal(this)">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">Failed to load products.</td></tr>';
+                    showStatus(result.message || 'Error loading products.', 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">Network error. Please try again.</td></tr>`;
+            }
+        }
+
+        function showStatus(message, type, targetElement = statusMessage) {
+            targetElement.textContent = message;
+            targetElement.className = 'status-msg status-' + type;
+            targetElement.style.display = 'block';
+            if(type === 'success') {
+                setTimeout(() => { if(targetElement.style.display === 'block') targetElement.style.display = 'none'; }, 3000);
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm(`Are you sure you want to delete product #${id}?`)) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showStatus('Product deleted successfully.', 'success');
+                    loadProducts();
+                } else {
+                    showStatus(result.message || 'Failed to delete product', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Network error while deleting.', 'error');
+            }
+        }
+
+        function openEditModal(buttonEl) {
+            const tr = buttonEl.closest('tr');
+            const product = JSON.parse(tr.dataset.product);
+            
+            document.getElementById('editId').value = product.id;
+            document.getElementById('editName').value = product.name;
+            document.getElementById('editCategory').value = product.category;
+            document.getElementById('editPrice').value = product.price;
+            document.getElementById('editQuantity').value = product.quantity;
+            
+            editStatusMessage.style.display = 'none';
+            editModalOverlay.classList.add('active');
+        }
+
+        function closeEditModal() {
+            editModalOverlay.classList.remove('active');
+            document.getElementById('editProductForm').reset();
+        }
+
+        document.getElementById('editProductForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const saveBtn = document.getElementById('saveBtn');
+            const id = document.getElementById('editId').value;
+            const productData = {
+                id: parseInt(id, 10),
+                name: document.getElementById('editName').value,
+                category: document.getElementById('editCategory').value,
+                price: parseFloat(document.getElementById('editPrice').value),
+                quantity: parseInt(document.getElementById('editQuantity').value, 10)
+            };
+            
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+            editStatusMessage.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/update.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showStatus('Product updated successfully!', 'success', editStatusMessage);
+                    setTimeout(() => {
+                        closeEditModal();
+                        showStatus('Product updated successfully.', 'success');
+                        loadProducts();
+                    }, 1000);
+                } else {
+                    showStatus(result.message || 'Error updating product.', 'error', editStatusMessage);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Network error. Could not save changes.', 'error', editStatusMessage);
+            } finally {
+                saveBtn.textContent = 'Save Changes';
+                saveBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
