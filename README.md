@@ -65,18 +65,16 @@ CREATE TABLE `products` (
 ### 2. Running The Server
 
 1. **Clone the repository:** 
-   Move the entire cloned project folder containing both `frontend` and `backend` directories into your server's public root folder (e.g., `C:\xampp\htdocs\` or `/Applications/MAMP/htdocs/`).
+   Clone this project directly into your server's public root folder (e.g., `C:\xampp\htdocs\` or `/Applications/MAMP/htdocs/`) and ensure the folder is named **Product-Management-System**.
    
 2. Ensure your **Apache** and **MySQL** services are running.
 
 ### 3. Using the System
 
-Because the `frontend` and `backend` folders are hosted side-by-side, the frontend API paths use **relative URLs** (`../backend/...`) via the `frontend/config.js` file.
+The frontend and backend API paths are pre-configured to work together out-of-the-box. No URL configuration is needed.
 
-This means you don't need to configure any URLs!
-
-Just navigate to the public address of the project in your browser:  
-`http://localhost/Product_Management_System/frontend/index.html` *(Change "Product_Management_System" to whatever you renamed the cloned folder to)*
+Just navigate to the application in your browser:  
+`http://localhost/Product-Management-System/frontend/index.html`
 
 *(Note: If you decide to host the API frontend and backend on completely different domains later, simply update the `API_BASE_URL` in `frontend/config.js` to an absolute URL).*
 
